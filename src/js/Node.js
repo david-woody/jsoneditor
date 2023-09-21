@@ -95,9 +95,12 @@ export class Node {
 
       if ((this.editor.options.mode === 'tree' || this.editor.options.mode === 'form') &&
           (typeof this.editor.options.onEditable === 'function')) {
+        const getValue = this.getValue.bind(this)
         const editable = this.editor.options.onEditable({
           field: this.field,
-          value: this.value,
+          get value () {
+            return getValue()
+          },
           path: this.getPath()
         })
 
@@ -944,7 +947,14 @@ export class Node {
       typeof this.editor.options.onClassName === 'function' &&
       this.dom.tree) {
       removeAllClassNames(this.dom.tree)
-      const addClasses = this.editor.options.onClassName({ path: this.getPath(), field: this.field, value: this.value }) || ''
+      const getValue = this.getValue.bind(this)
+      const addClasses = this.editor.options.onClassName({
+        path: this.getPath(),
+        field: this.field,
+        get value () {
+          return getValue()
+        }
+      }) || ''
       addClassName(this.dom.tree, 'jsoneditor-values ' + addClasses)
     }
   }
@@ -1552,7 +1562,7 @@ export class Node {
    */
   _setValueError (message) {
     this.valueError = {
-      message: message
+      message
     }
     this.updateError()
   }
@@ -1571,7 +1581,7 @@ export class Node {
    */
   _setFieldError (message) {
     this.fieldError = {
-      message: message
+      message
     }
     this.updateError()
   }
@@ -1607,8 +1617,8 @@ export class Node {
       path: this.getInternalPath(),
       oldValue: this.previousValue,
       newValue: this.value,
-      oldSelection: oldSelection,
-      newSelection: newSelection
+      oldSelection,
+      newSelection
     })
 
     this.previousValue = this.value
@@ -1640,8 +1650,8 @@ export class Node {
       index: this.getIndex(),
       oldValue: this.previousField,
       newValue: this.field,
-      oldSelection: oldSelection,
-      newSelection: newSelection
+      oldSelection,
+      newSelection
     })
 
     this.previousField = this.field
@@ -1731,12 +1741,7 @@ export class Node {
           this.dom.select.appendChild(defaultOption)
 
           // Iterate all enum values and add them as options
-          for (let i = 0; i < this.enum.length; i++) {
-            const option = document.createElement('option')
-            option.value = this.enum[i]
-            option.textContent = this.enum[i]
-            this.dom.select.appendChild(option)
-          }
+          this._updateEnumOptions()
 
           this.dom.tdSelect = document.createElement('td')
           this.dom.tdSelect.className = 'jsoneditor-tree'
@@ -1763,7 +1768,7 @@ export class Node {
           delete this.valueFieldHTML
         }
       } else {
-        // cleanup select box when displayed
+        // cleanup select box when displayed, and attach the editable div instead
         if (this.dom.tdSelect) {
           this.dom.tdSelect.parentNode.removeChild(this.dom.tdSelect)
           delete this.dom.tdSelect
@@ -1771,12 +1776,13 @@ export class Node {
           this.dom.tdValue.innerHTML = this.valueFieldHTML
           this.dom.tdValue.style.visibility = ''
           delete this.valueFieldHTML
+
+          this.dom.tdValue.appendChild(this.dom.value)
         }
       }
 
       // show color picker when value is a color
-      if (this.editable.value &&
-          this.editor.options.colorPicker &&
+      if (this.editor.options.colorPicker &&
           typeof value === 'string' &&
           isValidColor(value)) {
         if (!this.dom.color) {
@@ -1792,6 +1798,11 @@ export class Node {
 
         // update styling of value and color background
         addClassName(this.dom.value, 'jsoneditor-color-value')
+        if (!this.editable.value) {
+          addClassName(this.dom.color, 'jsoneditor-color-readonly')
+        } else {
+          removeClassName(this.dom.color, 'jsoneditor-color-readonly')
+        }
         this.dom.color.style.backgroundColor = value
       } else {
         // cleanup color picker when displayed
@@ -1835,6 +1846,23 @@ export class Node {
       stripFormatting(domValue)
 
       this._updateDomDefault()
+    }
+  }
+
+  _updateEnumOptions () {
+    if (!this.enum || !this.dom.select) {
+      return
+    }
+
+    // clear the existing options
+    this.dom.select.innerHTML = ''
+
+    // Iterate all enum values and add them as options
+    for (let i = 0; i < this.enum.length; i++) {
+      const option = document.createElement('option')
+      option.value = this.enum[i]
+      option.textContent = this.enum[i]
+      this.dom.select.appendChild(option)
     }
   }
 
@@ -2246,6 +2274,7 @@ export class Node {
         domField.innerHTML = escapedField
       }
       this._updateSchema()
+      this._updateEnumOptions()
     }
 
     // apply value to DOM
@@ -2526,7 +2555,11 @@ export class Node {
       }
     }
 
-    if (type === 'click' && (event.target === node.dom.tdColor || event.target === node.dom.color)) {
+    if (
+      type === 'click' &&
+      (event.target === node.dom.tdColor || event.target === node.dom.color) &&
+      this.editable.value
+    ) {
       this._showColorPicker()
     }
 
@@ -2854,12 +2887,12 @@ export class Node {
               oldIndex: oldNextNode.getIndex(),
               newIndex: firstNode.getIndex(),
 
-              oldIndexRedo: oldIndexRedo,
-              newIndexRedo: newIndexRedo,
-              oldParentPathRedo: oldParentPathRedo,
-              newParentPathRedo: newParentPathRedo,
+              oldIndexRedo,
+              newIndexRedo,
+              oldParentPathRedo,
+              newParentPathRedo,
 
-              oldSelection: oldSelection,
+              oldSelection,
               newSelection: this.editor.getDomSelection()
             })
           }
@@ -2913,12 +2946,12 @@ export class Node {
             oldIndex: oldNextNode.getIndex(),
             newIndex: firstNode.getIndex(),
 
-            oldIndexRedo: oldIndexRedo,
-            newIndexRedo: newIndexRedo,
-            oldParentPathRedo: oldParentPathRedo,
-            newParentPathRedo: newParentPathRedo,
+            oldIndexRedo,
+            newIndexRedo,
+            oldParentPathRedo,
+            newParentPathRedo,
 
-            oldSelection: oldSelection,
+            oldSelection,
             newSelection: this.editor.getDomSelection()
           })
         }
@@ -2960,12 +2993,12 @@ export class Node {
               oldIndex: oldNextNode.getIndex(),
               newIndex: firstNode.getIndex(),
 
-              oldIndexRedo: oldIndexRedo,
-              newIndexRedo: newIndexRedo,
-              oldParentPathRedo: oldParentPathRedo,
-              newParentPathRedo: newParentPathRedo,
+              oldIndexRedo,
+              newIndexRedo,
+              oldParentPathRedo,
+              newParentPathRedo,
 
-              oldSelection: oldSelection,
+              oldSelection,
               newSelection: this.editor.getDomSelection()
             })
           }
@@ -3030,13 +3063,13 @@ export class Node {
             fieldNames: selectedNodes.map(getField),
             oldParentPath: oldParent.getInternalPath(),
             newParentPath: firstNode.parent.getInternalPath(),
-            oldParentPathRedo: oldParentPathRedo,
-            newParentPathRedo: newParentPathRedo,
-            oldIndexRedo: oldIndexRedo,
-            newIndexRedo: newIndexRedo,
+            oldParentPathRedo,
+            newParentPathRedo,
+            oldIndexRedo,
+            newIndexRedo,
             oldIndex: oldNextNode.getIndex(),
             newIndex: firstNode.getIndex(),
-            oldSelection: oldSelection,
+            oldSelection,
             newSelection: this.editor.getDomSelection()
           })
         }
@@ -3078,6 +3111,14 @@ export class Node {
       // Put the table online again
       frame.appendChild(table)
       frame.scrollTop = scrollTop
+    }
+
+    if (typeof this.editor.options.onExpand === 'function') {
+      this.editor.options.onExpand({
+        path: this.getPath(),
+        isExpand: this.expanded,
+        recursive: recurse
+      })
     }
   }
 
@@ -3136,7 +3177,7 @@ export class Node {
     const newNode = new Node(this.editor, {
       field: (field !== undefined) ? field : '',
       value: (value !== undefined) ? value : '',
-      type: type
+      type
     })
     newNode.expand(true)
 
@@ -3150,10 +3191,10 @@ export class Node {
     this.editor._onAction('insertBeforeNodes', {
       nodes: [newNode],
       paths: [newNode.getInternalPath()],
-      beforePath: beforePath,
+      beforePath,
       parentPath: this.parent.getInternalPath(),
-      oldSelection: oldSelection,
-      newSelection: newSelection
+      oldSelection,
+      newSelection
     })
   }
 
@@ -3170,7 +3211,7 @@ export class Node {
     const newNode = new Node(this.editor, {
       field: (field !== undefined) ? field : '',
       value: (value !== undefined) ? value : '',
-      type: type
+      type
     })
     newNode.expand(true)
     this.parent.insertAfter(newNode, this)
@@ -3183,8 +3224,8 @@ export class Node {
       paths: [newNode.getInternalPath()],
       afterPath: this.getInternalPath(),
       parentPath: this.parent.getInternalPath(),
-      oldSelection: oldSelection,
-      newSelection: newSelection
+      oldSelection,
+      newSelection
     })
   }
 
@@ -3201,7 +3242,7 @@ export class Node {
     const newNode = new Node(this.editor, {
       field: (field !== undefined) ? field : '',
       value: (value !== undefined) ? value : '',
-      type: type
+      type
     })
     newNode.expand(true)
     this.parent.appendChild(newNode)
@@ -3213,8 +3254,8 @@ export class Node {
       nodes: [newNode],
       paths: [newNode.getInternalPath()],
       parentPath: this.parent.getInternalPath(),
-      oldSelection: oldSelection,
-      newSelection: newSelection
+      oldSelection,
+      newSelection
     })
   }
 
@@ -3232,10 +3273,10 @@ export class Node {
 
       this.editor._onAction('changeType', {
         path: this.getInternalPath(),
-        oldType: oldType,
-        newType: newType,
-        oldSelection: oldSelection,
-        newSelection: newSelection
+        oldType,
+        newType,
+        oldSelection,
+        newSelection
       })
     }
   }
@@ -3302,7 +3343,7 @@ export class Node {
     if (triggerAction === true) {
       this.editor._onAction('sort', {
         path: this.getInternalPath(),
-        oldChilds: oldChilds,
+        oldChilds,
         newChilds: this.childs
       })
     }
@@ -3319,7 +3360,7 @@ export class Node {
 
     this.editor._onAction('transform', {
       path: this.getInternalPath(),
-      oldValue: oldValue,
+      oldValue,
       newValue: this.getInternalValue()
     })
   }
@@ -3344,8 +3385,8 @@ export class Node {
     this.hide({ resetVisibleChilds: false })
 
     return {
-      table: table,
-      nextTr: nextTr
+      table,
+      nextTr
     }
   }
 
@@ -3905,7 +3946,7 @@ export class Node {
 
       items = this.editor.options.onCreateMenu(items, {
         type: 'single',
-        path: path,
+        path,
         paths: [path]
       })
     }
@@ -4061,10 +4102,14 @@ export class Node {
     if (this.type === 'object' || this.type === 'array') {
       if (this.editor.options.onNodeName) {
         try {
+          const getValue = this.getValue.bind(this)
           nodeName = this.editor.options.onNodeName({
             path: this.getPath(),
             size: count,
-            type: this.type
+            type: this.type,
+            get value () {
+              return getValue()
+            }
           })
         } catch (err) {
           console.error('Error in onNodeName callback: ', err)
@@ -4161,7 +4206,7 @@ Node.onDragStart = (nodes, event) => {
     oldParentPathRedo: parent.getInternalPath(),
     oldIndexRedo: firstNode.getIndex(),
     mouseX: event.pageX,
-    offsetY: offsetY,
+    offsetY,
     level: firstNode.getLevel()
   }
   document.body.style.cursor = 'move'
@@ -4376,14 +4421,14 @@ Node.onDragEnd = (nodes, event) => {
       count: nodes.length,
       fieldNames: nodes.map(getField),
 
-      oldParentPath: oldParentPath,
-      newParentPath: newParentPath,
-      oldIndex: oldIndex,
-      newIndex: newIndex,
+      oldParentPath,
+      newParentPath,
+      oldIndex,
+      newIndex,
 
-      oldIndexRedo: oldIndexRedo,
-      newIndexRedo: newIndexRedo,
-      oldParentPathRedo: oldParentPathRedo,
+      oldIndexRedo,
+      newIndexRedo,
+      oldParentPathRedo,
       newParentPathRedo: null, // This is a hack, value will be filled in during undo
 
       oldSelection: editor.drag.oldSelection,
@@ -4474,7 +4519,7 @@ Node._findSchema = (topLevelSchema, schemaRefs, path, currentSchema = topLevelSc
           if (segment in currentSchema) {
             currentSchema = currentSchema[segment]
           } else {
-            throw Error(`Unable to resovle reference ${ref}`)
+            throw Error(`Unable to resolve reference ${ref}`)
           }
         }
       } else if (ref.match(/#\//g)?.length === 1) {
@@ -4561,12 +4606,12 @@ Node.onRemove = nodes => {
 
     // store history action
     editor._onAction('removeNodes', {
-      nodes: nodes,
-      paths: paths,
+      nodes,
+      paths,
       parentPath: parent.getInternalPath(),
       index: firstIndex,
-      oldSelection: oldSelection,
-      newSelection: newSelection
+      oldSelection,
+      newSelection
     })
   }
 }
@@ -4622,8 +4667,8 @@ Node.onDuplicate = nodes => {
       clonePaths: clones.map(getInternalPath),
       afterPath: lastNode.getInternalPath(),
       parentPath: parent.getInternalPath(),
-      oldSelection: oldSelection,
-      newSelection: newSelection
+      oldSelection,
+      newSelection
     })
   }
 }

@@ -13,9 +13,11 @@ import {
   makeFieldTooltip,
   parsePath,
   parseString,
+  removeReturnsAndSurroundingWhitespace,
   sort,
   sortObjectKeys,
-  stringifyPath
+  stringifyPath,
+  uniqueMergeArrays
 } from '../src/js/util'
 
 describe('util', () => {
@@ -391,6 +393,20 @@ describe('util', () => {
   it('should test whether a field is a timestamp', () => {
     assert.strictEqual(isTimestamp('foo', 1574809200000), true)
     assert.strictEqual(isTimestamp('foo', 1574809200000.2), false)
+  })
+
+  it('regex should match whitespace and surrounding whitespace', () => {
+    assert.strictEqual(
+      removeReturnsAndSurroundingWhitespace(' \n A\nB  \nC  \n  D \n\n E F\n '),
+      'ABCDE F')
+  })
+
+  describe('uniqueMergeArrays', () => {
+    it('should merge arrays with unique values', () => {
+      const arr1 = ['a', 'b', 'c', 'd', 'e']
+      const arr2 = ['c', 'd', 'f', 'g']
+      assert.deepStrictEqual(uniqueMergeArrays(arr1, arr2), ['a', 'b', 'c', 'd', 'e', 'f', 'g'])
+    })
   })
 
   // TODO: thoroughly test all util methods

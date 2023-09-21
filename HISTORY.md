@@ -3,6 +3,119 @@
 https://github.com/josdejong/jsoneditor
 
 
+## 2023-05-12, version 9.10.2
+
+- Fix option `showErrorTable` (see #1515): 
+  - a console warning was logged when using the option `showErrorTable` 
+  - `showErrorTable: false` was not working
+  - `showErrorTable` was not working for `preview` mode
+- Upgraded to the latest version of `ace` and `jsonrepair`.
+
+
+## 2023-05-12, version 9.10.1
+
+- Fix #1515: a console warning is logged when using the option `showErrorTable`.
+
+
+## 2023-02-20, version 9.10.0
+
+- Implement option `showErrorTable` to customize in which modes the error table
+  shows up initially (#1497). Thanks @magedhennawy.
+- Upgrade to the latest version of Ace editor, `v1.15.2`.
+- Upgrade to the latest version of jsonrepair, `v3.0.2`.
+- Fix #1208: source map issue "Could not load source file "0" in source map" 
+  (#1499). Thanks @joshkel.
+
+
+## 2022-09-20, version 9.9.2
+
+- Fix #1470: update the code of Selectr from `2.4.0` to `2.4.13`.
+
+
+## 2022-09-19, version 9.9.1
+
+- Upgrade to the latest version of Ace editor, `v1.10.1`.
+
+
+## 2022-06-13, version 9.9.0
+
+- Implemented #968: support for auto-completion based on JSON Schema (#1435).
+  Thanks @meirotstein.
+- Upgrade to the latest version of Ace editor, `v1.6.0`.
+
+
+## 2022-05-31, version 9.8.0
+
+- Implemented method `editor.expand({ path, isExpand, recursive })` and callback 
+  `onExpand({ path, isExpand, recursive })`. Thanks @himanshu520.
+- Upgrade to the latest version of Ace editor, `v1.5.3`.
+
+
+## 2022-03-15, version 9.7.4
+
+- Fix #1421: fix `onBlur` event not firing when focus goes to an `iframe`.
+
+
+## 2022-03-04, version 9.7.3
+
+- Fix #1422: fix `setSchema` not working.
+
+
+## 2022-02-09, version 9.7.2
+
+- Fix #1419: blurry text preview query on Chrome.
+
+
+## 2022-02-09, version 9.7.1
+
+- Fix #1419: blurry text preview on Chrome.
+
+
+## 2022-01-30, version 9.7.0
+
+- Implement #1413: show color indicator on readonly fields and in mode `view`.
+
+
+## 2022-01-13, version 9.6.0
+
+- Pass a new property `value` along with the `onNodeName` callback, see #1409. 
+  Thanks @brianpos.
+- Implement the `value` property of the callbacks `onNodeName`, `onEditable`, 
+  and `onClassName` for objects and arrays too (was `undefined` before). 
+  Since this can be a heavy recursive operation, the property is changed into 
+  a lazy getter.
+
+
+## 2021-12-29, version 9.5.11
+
+- Fix the font on Ubuntu for real by add the "ubuntu mono" font. See #1405. 
+
+
+## 2021-12-27, version 9.5.10
+
+- Fix the font on Ubuntu: add "dejavu sans mono". See #1405. 
+
+
+## 2021-12-22, version 9.5.9
+
+- More tweaking of the font because the 13px Cascadia Mono font on Windows gave
+  issues in Ace editor. Changed to 14px Consolas on Windows, 14px Menlo on Mac, 
+  see #1392, #1403.
+
+
+## 2021-12-19, version 9.5.8
+
+- Fix vertical centering of text and buttons, see #1392.
+- Improve font: 13px Cascadia Mono on Windows, 13px Monaco on Mac, see #1392.
+
+
+## 2021-11-06, version 9.5.7
+
+- More robust polyfill for `Element.remove`, `window.CharacterData.remove`,
+  and `window.DocumentType.remove`. Thanks @caok2709.
+- Update dependencies: `ace-builds@1.4.13`, `vanilla-picker@2.12.1`.
+
+
 ## 2021-09-22, version 9.5.6
 
 - Fix inefficient regex to replace return characters. 

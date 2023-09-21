@@ -17,6 +17,7 @@ div.jsoneditor-default {
   border: 1px solid transparent;
   min-height: 16px;
   min-width: 32px;
+  line-height: 16px;
   padding: 2px;
   margin: 1px;
   word-wrap: break-word;
@@ -184,6 +185,10 @@ div {
         margin: 4px;
         border: 1px solid $jse-readonly;
         cursor: pointer;
+
+        &.jsoneditor-color-readonly {
+          cursor: inherit;
+        }
       }
       &.jsoneditor-date {
         background: $jse-date;
@@ -203,6 +208,8 @@ div {
       }
     }
     .jsoneditor-button {
+      display: block;
+
       &.jsoneditor-schema-error {
         width: 24px;
         height: 24px;
@@ -319,7 +326,7 @@ textarea.jsoneditor-text,
 .ace-jsoneditor {
   min-height: 150px;
 
-  * {
+  &.ace_editor {
     font-family: $jse-font-mono;
   }
 }
